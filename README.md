@@ -1,14 +1,12 @@
 # Umbrella - A Video Plugin for Kodi
 
-Welcome to the umbrellaplug.github.io wiki!
+Welcome to the umbrellaplug.github.io
 
-Compatible with Kodi 19 and 20.
-Kodi 21 (Omega) is still in Alpha and not currently supported.
-
+Compatible with Kodi 19, 20, and 21.
 
 ## Current Versions:
-Umbrella - 6.6.39
-Umbrella Repo - 2.2.4
+Umbrella - 6.7.21
+Umbrella Repo - 2.2.6
 
 ## Installation Instructions:
 From Kodi:
@@ -39,10 +37,15 @@ Currently Supported Debrid Providers:
 - Real Debrid
 - Premiumize
 
-**The plugin will not work without at least 1 debrid account**
+Currently Supported Other Providers:
+- Easynews
+- Plex
+- Google Drive
+
+**The plugin will not work without at least 1 of these types of accounts**
 
 ## Issues
-Issues are closed for a while due to repeat stupid ass requests. I'll re-open them when the community stops acting like a smooth brain.
+Please do not mention any other addons in issues.
 
 ## Logs
 Enable Logs: Go to Umbrella settings and select Debugging on the left hand side.
@@ -60,17 +63,5 @@ Set your settings like this:
 
 **A:** Some yes. Open an issue and use the feature request template.
 
-
-**Q:** How do I contact you?
-
-**A:** You don't.
-
-
-
-**Other Kodi Addons**
-
-[Fen](https://github.com/Tikipeter/repository.tikipeter)
-
-[Seren](https://github.com/nixgates/)
 
 [Setup Instructions](https://github.com/umbrellaplug/umbrellaplug.github.io/wiki#setup-instructions)

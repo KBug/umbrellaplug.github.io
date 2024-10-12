@@ -134,7 +134,8 @@ def router(argv2):
 		movies.Movies().years(url, folderName=folderName)
 	elif action == 'moviePersons':
 		from resources.lib.menus import movies
-		movies.Movies().persons(url, folderName=folderName)
+		#movies.Movies().persons(url, folderName=folderName)
+		movies.Movies().persons_tmdb(url, folderName=folderName)
 	elif action == 'actorSearchMovies':
 		link = 'https://www.imdb.com/search/name/?count=100&name='
 		name = params.get('name')
@@ -313,7 +314,8 @@ def router(argv2):
 		tvshows.TVshows().years(url, folderName=folderName)
 	elif action == 'tvPersons':
 		from resources.lib.menus import tvshows
-		tvshows.TVshows().persons(url)
+		#tvshows.TVshows().persons(url)
+		tvshows.TVshows().persons_tmdb(url)
 	elif action == 'actorSearchTV':
 		link = 'https://www.imdb.com/search/name/?count=100&name='
 		name = params.get('name')
@@ -714,6 +716,9 @@ def router(argv2):
 	elif action == 'colorpicker':
 		control.showColorPicker(current_setting)
 
+	elif action == 'resetCustomBG':
+		from resources.lib.modules import tools
+		tools.resetCustomBG()
 	####################################################
 	#---Tools
 	####################################################
@@ -721,6 +726,12 @@ def router(argv2):
 		if action == 'tools_ShowNews':
 			from resources.lib.modules import newsinfo
 			newsinfo.news()
+		if action == 'tools_openSubsTest':
+			from resources.lib.modules import opensubs
+			opensubs.Opensubs().getAccountStatus()
+		if action == 'tools_openSubsRevoke':
+			from resources.lib.modules import opensubs
+			opensubs.Opensubs().revokeAccess()
 		elif action == 'tools_ShowChangelog':
 			from resources.lib.modules import changelog
 			changelog.get(name)
@@ -767,41 +778,12 @@ def router(argv2):
 		elif action == 'tools_contextUmbrellaSettings':
 			control.openSettings('0.0', 'context.umbrella')
 			control.trigger_widget_refresh()
-		elif action == 'tools_cocoScrapersSettings':
-			if query == 'EasyNews':
-				control.openSettings('1.2', 'script.module.cocoscrapers')
-				control.sleep(500)
-				while control.condVisibility('Window.IsVisible(addonsettings)') or control.homeWindow.getProperty('cocoscrapers.active') == 'true':
-					control.sleep(500)
-				control.sleep(100)
-				control.syncAccounts()
-				control.sleep(100)
-				control.openSettings('11.3', 'plugin.video.umbrella')
-			elif query == 'FilePursuit':
-				control.openSettings('1.3', 'script.module.cocoscrapers')
-				control.sleep(500)
-				while control.condVisibility('Window.IsVisible(addonsettings)') or control.homeWindow.getProperty('cocoscrapers.active') == 'true':
-					control.sleep(500)
-				control.sleep(100)
-				control.syncAccounts()
-				control.sleep(100)
-				control.openSettings('11.4', 'plugin.video.umbrella')
-			elif query == 'Plex':
-				control.openSettings('1.1', 'script.module.cocoscrapers')
-				control.sleep(500)
-				while control.condVisibility('Window.IsVisible(addonsettings)') or control.homeWindow.getProperty('cocoscrapers.active') == 'true':
-					control.sleep(500)
-				control.sleep(100)
-				control.syncAccounts()
-				control.sleep(100)
-				control.openSettings('11.7', 'plugin.video.umbrella')
-			else:
-				control.openSettings('0.0','script.module.cocoscrapers')
 		elif action == 'tools_traktManager':
 			from resources.lib.modules import trakt
 			watched = (params.get('watched') == 'True') if params.get('watched') else None
 			unfinished = (params.get('unfinished') == 'True') if params.get('unfinished') else False
-			trakt.manager(name, imdb, tvdb, season, episode, watched=watched, unfinished=unfinished)
+			tvshow = (params.get('tvshow') == 'tvshow')
+			trakt.manager(name, imdb, tvdb, season, episode, watched=watched, unfinished=unfinished,tvshow=tvshow)
 		elif action == 'tools_likeList':
 			from resources.lib.modules import trakt
 			trakt.like_list(params.get('list_owner'), params.get('list_name'), params.get('list_id'))
@@ -931,6 +913,11 @@ def router(argv2):
 			windowedtrailer = params.get('windowedtrailer')
 			windowedtrailer = int(windowedtrailer) if windowedtrailer in ("0","1") else 0
 			trailer.Trailer().playContext(params.get('type'), name, year, url, imdb, windowedtrailer)
+		elif action == 'play_Trailer_Select':
+			from resources.lib.modules import trailer
+			windowedtrailer = params.get('windowedtrailer')
+			windowedtrailer = int(windowedtrailer) if windowedtrailer in ("0","1") else 0
+			trailer.Trailer().play_select(params.get('type'), name, year, windowedtrailer)
 		elif action == 'play_Random':
 			rtype = params.get('rtype')
 			if rtype == 'movie':
@@ -1158,6 +1145,9 @@ def router(argv2):
 		elif action == 'cache_clearCache':
 			from resources.lib.menus import navigator
 			navigator.Navigator().clearCache()
+		elif action == 'cache_fanart':
+			from resources.lib.menus import navigator
+			navigator.Navigator().clearFanart()
 		elif action == 'cache_clearMovieCache':
 			from resources.lib.menus import navigator
 			navigator.Navigator().clearMovieCache()

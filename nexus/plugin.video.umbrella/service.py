@@ -6,7 +6,6 @@
 from resources.lib.modules import control, log_utils
 from sys import version_info, platform as sys_platform
 from threading import Thread
-import xbmc
 import time
 from datetime import timedelta
 window = control.homeWindow
@@ -20,6 +19,7 @@ properties = [
 	'context.umbrella.addtoLibrary',
 	'context.umbrella.addtoFavourite',
 	'context.umbrella.playTrailer',
+	'context.umbrella.playTrailerSelect',
 	'context.umbrella.traktManager',
 	'context.umbrella.clearProviders',
 	'context.umbrella.clearBookmark',
@@ -56,22 +56,23 @@ class SettingsMonitor(control.monitor_class):
 		control.refresh_playAction()
 		control.refresh_libPath()
 		window.setProperty('umbrella.debug.reversed', str(control.setting('debug.reversed')))
+		window.setProperty('umbrella.updateSettings', 'true')
 		for id in properties:
 			if control.setting(id) == 'true':
-				xbmc.executebuiltin('SetProperty({0},true,home)'.format(id))
+				window.setProperty(id, 'true')
 				#xbmc.log('[ plugin.video.umbrella.context ]  menu item enabled: {0}'.format(id), LOGINFO)
 		control.log('[ plugin.video.umbrella ]  Settings Monitor Service Starting...', LOGINFO)
 
 	def onSettingsChanged(self):
+		if window.getProperty('umbrella.updateSettings') != 'true':
+			return control.log('[ plugin.video.umbrella ]  Settings Monitor is off.', LOGINFO)
+		window.setProperty('umbrella.updateSettings','false')
+
 		try:
 			window.clearProperty('umbrella_settings') # Kodi callback when the addon settings are changed
 		except:
 			control.log('[ plugin.video.umbrella ]  Exception clearing settings property...', LOGDEBUG)
-		try:
-			control.sleep(50)
-			refreshed = control.make_settings_dict()
-		except:
-			control.log('[ plugin.video.umbrella ]  Exception making settings dict...', LOGDEBUG)
+
 		try:
 			control.refresh_playAction()
 		except:
@@ -80,10 +81,10 @@ class SettingsMonitor(control.monitor_class):
 			control.refresh_libPath()
 		except:
 			control.log('[ plugin.video.umbrella ]  Exception refreshing libpath...', LOGDEBUG)
-		try:
-			control.checkPlayNextEpisodes()
-		except:
-			control.log('[ plugin.video.umbrella ]  Exception checking playnext episodes...', LOGDEBUG)
+		#try:
+			#control.checkPlayNextEpisodes()
+		#except:
+			#control.log('[ plugin.video.umbrella ]  Exception checking playnext episodes...', LOGDEBUG)
 		try:
 			control.refresh_debugReversed()
 		except:
@@ -97,12 +98,17 @@ class SettingsMonitor(control.monitor_class):
 		except:
 			control.log('[ plugin.video.umbrella ]  Exception checking modules...', LOGDEBUG)
 		try:
+			control.sleep(50)
+			refreshed = control.make_settings_dict()
+			window.setProperty('umbrella.updateSettings','true')
+		except:
+			control.log('[ plugin.video.umbrella ]  Exception making settings dict...', LOGDEBUG)
+		try:
 			for id in properties:
 				if control.setting(id) == 'true':
-					xbmc.executebuiltin('SetProperty({0},true,home)'.format(id))
-					#xbmc.log('[ plugin.video.umbrella.context ]  menu item enabled: {0}'.format(id), LOGINFO)
+					window.setProperty(id, 'true')
 				else:
-					xbmc.executebuiltin('ClearProperty({0},home)'.format(id))
+					window.clearProperty(id)
 					#xbmc.log('[ plugin.video.umbrella.context ]  menu item disabled: {0}'.format(id), LOGINFO)
 		except:
 			log_utils.error()
@@ -179,7 +185,7 @@ class AddonCheckUpdate:
 			import requests
 			local_version = control.getUmbrellaVersion() # 5 char max so pre-releases do try to compare more chars than github version 6.5.941
 			if len(local_version) > 6: #test version
-				repo_xml = requests.get('https://raw.githubusercontent.com/umbrellaplug/umbrellatest/master/matrix/plugin.video.umbrella/addon.xml')
+				repo_xml = requests.get('https://raw.githubusercontent.com/umbrellakodi/umbrellakodi/master/matrix/plugin.video.umbrella/addon.xml')
 			else:
 				repo_xml = requests.get('https://raw.githubusercontent.com/umbrellaplug/umbrellaplug.github.io/master/matrix/plugin.video.umbrella/addon.xml')
 			if not repo_xml.status_code == 200:
@@ -279,9 +285,7 @@ try:
 		except:
 			repoVersion = 'unknown'
 			repoName = 'Unknown Repo'
-		
-	#fsVersion = control.addon('script.module.cocoscrapers').getAddonInfo('version')
-	#maVersion = control.addon('script.module.myaccounts').getAddonInfo('version')
+
 	log_utils.log('########   CURRENT Umbrella VERSIONS REPORT   ########', level=LOGINFO)
 	if testUmbrella == True:
 		log_utils.log('########   TEST Umbrella Version   ########', level=LOGINFO)
@@ -290,7 +294,6 @@ try:
 	log_utils.log('##   python Version: %s' % pythonVersion, level=LOGINFO)
 	log_utils.log('##   plugin.video.umbrella Version: %s' % str(addonVersion), level=LOGINFO)
 	log_utils.log('##   %s Version: %s' % (str(repoName), str(repoVersion)), level=LOGINFO)
-	#log_utils.log('##   script.module.cocoscrapers Version: %s' % str(fsVersion), level=LOGINFO)
 	log_utils.log('######   UMBRELLA SERVICE ENTERING KEEP ALIVE   #####', level=LOGINFO)
 except:
 	log_utils.log('## ERROR GETTING Umbrella VERSION - Missing Repo or failed Install ', level=LOGINFO)
@@ -383,7 +386,7 @@ def main():
 		PremAccntNotification().run()
 		ReuseLanguageInvokerCheck().run()
 		SyncMovieLibrary().run()
-		control.checkPlayNextEpisodes()
+		#control.checkPlayNextEpisodes()
 		if control.setting('library.service.update') == 'true':
 			libraryService = Thread(target=LibraryService().run)
 			libraryService.start()

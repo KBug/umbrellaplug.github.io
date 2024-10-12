@@ -94,6 +94,8 @@ class RealDebrid:
 		return response
 
 	def _post(self, url, data):
+		#pause for real debrid api restriction of 1 request per second
+		#control.sleep(1000)
 		try:
 			original_url = url
 			url = rest_base_url + url
@@ -343,7 +345,8 @@ class RealDebrid:
 				nextMenu = getLS(32053)
 				url = '%s?action=rd_MyDownloads&query=%s' % (sysaddon, page)
 				page = '  [I](%s)[/I]' % page
-				nextMenu = '[COLOR skyblue]' + nextMenu + page + '[/COLOR]'
+				nextColor = '[COLOR %s]' % getSetting('highlight.color')
+				nextMenu =  nextColor + nextMenu + page + '[/COLOR]'
 				item = control.item(label=nextMenu, offscreen=True)
 				icon = control.addonNext()
 				item.setArt({'icon': rd_icon, 'poster': rd_icon, 'thumb': rd_icon, 'fanart': addonFanart, 'banner': rd_icon})
@@ -543,7 +546,7 @@ class RealDebrid:
 		torrent_info = self.torrent_info(torrent_id)
 		if 'error_code' in torrent_info: return _return_failed()
 		status = torrent_info['status']
-		line = '%s\n%s'
+		line = '%s\n%s\n%s'
 		if status == 'magnet_conversion':
 			line1 = getLS(40013)
 			line2 = torrent_info['filename']
@@ -660,6 +663,7 @@ class RealDebrid:
 	def add_magnet(self, magnet):
 		try:
 			data = {'magnet': magnet}
+
 			response = self._post(add_magnet_url, data)
 			log_utils.log('Real-Debrid: Sending MAGNET to cloud: %s' % magnet, __name__, log_utils.LOGDEBUG)
 			return response.get('id', "")
@@ -831,11 +835,13 @@ class RealDebrid:
 			control.sleep(500)
 			account_info = self.account_info()
 			username = account_info['username']
+			control.homeWindow.setProperty('umbrella.updateSettings', 'false')
 			control.setSetting('realdebridusername', username)
 			control.setSetting('realdebrid.clientid', self.client_ID)
 			control.setSetting('realdebridsecret', self.secret,)
 			control.setSetting('realdebridtoken', self.token)
 			#control.addon('script.module.myaccounts').setSetting('realdebridtoken', self.token)
+			control.homeWindow.setProperty('umbrella.updateSettings', 'true')
 			control.setSetting('realdebridrefresh', response['refresh_token'])
 			if fromSettings == 1:
 				control.openSettings('10.2', 'plugin.video.umbrella')
@@ -849,10 +855,12 @@ class RealDebrid:
 
 	def reset_authorization(self, fromSettings=0):
 		try:
+			control.homeWindow.setProperty('umbrella.updateSettings', 'false')
 			control.setSetting('realdebrid.clientid', '')
 			control.setSetting('realdebridsecret', '')
 			control.setSetting('realdebridtoken', '')
 			control.setSetting('realdebridrefresh', '')
+			control.homeWindow.setProperty('umbrella.updateSettings', 'true')
 			control.setSetting('realdebridusername', '')
 			if fromSettings == 1:
 				control.openSettings('10.2', 'plugin.video.umbrella')

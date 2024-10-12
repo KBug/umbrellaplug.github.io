@@ -100,7 +100,7 @@
 					</constraints>
 					<dependencies>
 						<dependency type="visible">
-							<condition operator="is" setting="trakt.isauthed"/>
+							<condition operator="is" setting="trakt.isauthed">true</condition>
 						</dependency>
 					</dependencies>
 					<control type="spinner" format="string"/>
@@ -115,7 +115,7 @@
 					</constraints>
 					<dependencies>
 						<dependency type="visible">
-							<condition operator="!is" setting="trakt.isauthed"/>
+							<condition operator="is" setting="trakt.isauthed"></condition>
 						</dependency>
 					</dependencies>
 					<control type="spinner" format="string"/>
@@ -441,7 +441,7 @@
 				</setting>
 				<setting id="limit.imdb.genres" type="integer" label="40492" help="">
 					<level>0</level>
-					<default>20</default>
+					<default>100</default>
 					<constraints>
 						<minimum>20</minimum>
 						<maximum>250</maximum>
@@ -450,6 +450,11 @@
 					<control type="slider" format="integer">
 						<popup>false</popup>
 					</control>
+				</setting>
+				<setting id="localnotify" type="integer" label="40513" help="">
+					<level>0</level>
+					<default>true</default>
+					<control type="toggle"/>
 				</setting>
 			</group>
 			<group id="2" label="35055">
@@ -810,6 +815,30 @@
 					<control type="button" format="action"/>
 				</setting>
 			</group>
+			<group id="5" label="40522">
+				<setting id="custombg" type="path" label="32337" help="">
+					<level>0</level>
+					<default/>
+					<constraints>
+						<writable>false</writable>
+						<masking>image</masking>
+						<allowempty>true</allowempty>
+					</constraints>
+					<control type="button" format="image">
+						<heading>32337</heading>
+					</control>
+				</setting>
+				<setting id="resetCustomBG" type="action" label="40523" help="">
+					<level>0</level>
+					<data>RunPlugin(plugin://plugin.video.umbrella/?action=resetCustomBG)</data>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<control type="button" format="action">
+						<close>true</close>
+					</control>
+				</setting>
+			</group>
 		</category>
 		<category id="navigation" label="32621" help="40184">
 			<group id="1" label="32005">
@@ -1067,6 +1096,11 @@
 					<default>true</default>
 					<control type="toggle"/>
 				</setting>
+				<setting id="navi.movie.imdb.languages" type="boolean" label="32462" help="">
+					<level>0</level>
+					<default>true</default>
+					<control type="toggle"/>
+				</setting>
 				<setting id="navi.movie.tmdb.certificates" type="boolean" label="32487" help="">
 					<level>0</level>
 					<default>true</default>
@@ -1276,22 +1310,24 @@
 		<category id="tv shows" label="32002" help="40185">
 			<group id="1">
 				
-				<setting id="flatten.tvshows" type="boolean" label="32317" help="">
+				<setting id="flatten.tvshows" type="integer" label="32317" help="">
 					<level>0</level>
-					<default>false</default>
-					<dependencies>
-						<dependency type="visible">
-							<condition on="property" name="InfoBool">true</condition>
-						</dependency>
-					</dependencies>
-					<control type="toggle"/>
+					<default>2</default>
+					<constraints>
+						<options>
+							<option label="40514">0</option>
+							<option label="40515">1</option>
+							<option label="40516">2</option>
+						</options>
+					</constraints>
+					<control type="spinner" format="string"/>
 				</setting>
 				<setting id="flatten.desc" type="boolean" label="40136" help="">
 					<level>0</level>
 					<default>false</default>
 					<dependencies>
 						<dependency type="visible">
-							<condition operator="is" setting="flatten.tvshows">true</condition>
+							<condition operator="gt" setting="flatten.tvshows">0</condition>
 						</dependency>
 					</dependencies>
 					<control type="toggle"/>
@@ -2254,12 +2290,12 @@
 					<default>false</default>
 					<control type="toggle"/>
 				</setting>
-				<setting id="remove.av1" type="boolean" label="40403" help="">
+				<setting id="remove.av1" type="boolean" label="40132" help="">
 					<level>0</level>
 					<default>false</default>
 					<control type="toggle"/>
 				</setting>
-				<setting id="remove.atvp" type="boolean" label="40132" help="">
+				<setting id="remove.atvp" type="boolean" label="40403" help="">
 					<level>0</level>
 					<default>false</default>
 					<control type="toggle"/>
@@ -2596,17 +2632,17 @@
 			<group id="2" label="32386">
 				<setting id="progress.dialog" type="integer" label="32335" help="">
 					<level>0</level>
-					<default>0</default>
+					<default>2</default>
 					<constraints>
 						<options>
-							<option label="32336">0</option>
-							<option label="32337">1</option>
-							<option label="40335">2</option>
-							<option label="40336">3</option>
-							<option label="40396">4</option>
+							<option label="32336">0</option> <!-- Foreground -->
+							<option label="32337">1</option> <!-- Background -->
+							<option label="40335">2</option> <!-- Full Screen -->
+							<option label="40336">3</option> <!-- Icon Only -->
+							<option label="40396">4</option> <!-- Hidden -->
 						</options>
 					</constraints>
-					<control type="spinner" format="string"/>
+					<control type="list" format="string"/>
 				</setting>
 				<setting id="sources.dialog.fanartBG" type="boolean" label="40338" help="">
 					<level>0</level>
@@ -2750,11 +2786,6 @@
 				<setting id="sources.highlight.color.display" type="string" label="40348" help="">
 					<level>0</level>
 					<default>[COLOR=FF4DFFFF]FF4DFFFF[/COLOR]</default> <!-- blue green -->
-					<dependencies>
-						<dependency type="visible">
-							<condition operator="is" setting="sources.highlightmethod">0</condition>
-						</dependency>
-					</dependencies>
 					<control type="button" format="action">
 						<data>RunPlugin(plugin://plugin.video.umbrella/?action=colorpicker&amp;setting=sources.highlight.color)</data>
 					</control>
@@ -3301,24 +3332,6 @@
 					</dependencies>
 					<control type="toggle"/>
 				</setting>
-				<setting id="resume.source.alt" type="integer" label="32095" help="">
-					<level>0</level>
-					<default>0</default>
-					<constraints>
-						<options>
-							<option label="32314">0</option>
-						</options>
-					</constraints>
-					<dependencies>
-						<dependency type="visible">
-							<and>
-								<condition operator="!is" setting="trakt.user.token"/>
-								<condition operator="!is" setting="trakt.scrobble">true</condition>
-							</and>
-						</dependency>
-					</dependencies>
-					<control type="spinner" format="string"/>
-				</setting>
 				<setting id="resume.source" type="integer" label="32095" help="">
 					<level>0</level>
 					<default>0</default>
@@ -3330,10 +3343,7 @@
 					</constraints>
 					<dependencies>
 						<dependency type="visible">
-							<and>
 								<condition operator="!is" setting="trakt.user.token"/>
-								<condition operator="is" setting="trakt.scrobble">true</condition>
-							</and>
 						</dependency>
 					</dependencies>
 					<control type="spinner" format="string"/>
@@ -4632,6 +4642,10 @@
 				</setting>
 			</group>
 			<group id="2" label="40166">
+				<setting id="tmdb.baseaddress" type="string" label="40524" help="">
+					<default>false</default>
+					<control type="toggle"/>
+				</setting>
 				<setting id="tmdb.apikey" type="string" label="40167" help="">
 					<level>0</level>
 					<default/>
@@ -4823,10 +4837,10 @@
 					<default>false</default>
 					<dependencies>
 						<dependency type="enable">
-							<condition operator="is" setting="library.service.update">True</condition>
+							<condition operator="is" setting="library.service.update">true</condition>
 						</dependency>
 						<dependency type="visible">
-							<condition operator="is" setting="trakt.isauthed"/>
+							<condition operator="is" setting="trakt.isauthed">true</condition>
 						</dependency>
 					</dependencies>
 					<control type="toggle"/>
@@ -4842,10 +4856,10 @@
 							<condition on="property" name="infoBool">false</condition>
 						</dependency>
 						<dependency type="visible">
-							<condition operator="is" setting="library.autoimportlists">True</condition>
+							<condition operator="is" setting="library.autoimportlists">true</condition>
 						</dependency>
 						<dependency type="visible">
-							<condition operator="is" setting="trakt.isauthed"/>
+							<condition operator="is" setting="trakt.isauthed">true</condition>
 						</dependency>
 					</dependencies>
 					<control type="button" format="action">
@@ -4861,13 +4875,13 @@
 					</constraints>
 					<dependencies>
 						<dependency type="visible">
-							<condition operator="is" setting="library.autoimportlists">True</condition>
+							<condition operator="is" setting="library.autoimportlists">true</condition>
 						</dependency>
 						<dependency type="enable">
 							<condition on="property" name="infoBool">false</condition>
 						</dependency>
 						<dependency type="visible">
-							<condition operator="is" setting="trakt.isauthed"/>
+							<condition operator="is" setting="trakt.isauthed">true</condition>
 						</dependency>
 					</dependencies>
 					<control type="button" format="action">
@@ -4884,8 +4898,8 @@
 					<dependencies>
 						<dependency type="visible">
 							<and>
-								<condition operator="is" setting="library.autoimportlists">True</condition>
-								<condition operator="is" setting="trakt.isauthed"/>
+								<condition operator="is" setting="library.autoimportlists">true</condition>
+								<condition operator="is" setting="trakt.isauthed">true</condition>
 							</and>
 						</dependency>
 					</dependencies>
@@ -4903,8 +4917,8 @@
 					<dependencies>
 						<dependency type="visible">
 							<and>
-								<condition operator="is" setting="library.autoimportlists">True</condition>
-								<condition operator="is" setting="trakt.isauthed"/>
+								<condition operator="is" setting="library.autoimportlists">true</condition>
+								<condition operator="is" setting="trakt.isauthed">true</condition>
 							</and>
 						</dependency>
 					</dependencies>
@@ -4921,7 +4935,7 @@
 					</constraints>
 					<dependencies>
 						<dependency type="visible">
-							<condition operator="is" setting="trakt.isauthed"/>
+							<condition operator="is" setting="trakt.isauthed">true</condition>
 						</dependency>
 					</dependencies>
 					<control type="button" format="action">
@@ -5084,6 +5098,85 @@
 						</dependency>
 					</dependencies>
 					<control type="toggle"/>
+				</setting>
+				<setting id="opensubsusername" type="string" label="40504" help="">
+					<level>0</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<dependencies>
+						<dependency type="visible">
+							<condition operator="is" setting="subtitles">true</condition>
+						</dependency>
+					</dependencies>
+					<control type="edit" format="string">
+						<heading>40504</heading>
+					</control>
+				</setting>
+				<setting id="opensubspassword" type="string" label="40505" help="">
+					<level>0</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<dependencies>
+						<dependency type="visible">
+							<condition operator="is" setting="subtitles">true</condition>
+						</dependency>
+					</dependencies>
+					<control type="edit" format="string">
+						<heading>40505</heading>
+						<hidden>true</hidden>
+					</control>
+				</setting>
+				<setting id="openSubsTest" type="string" label="40507" help="">
+					<level>0</level>
+					<default></default>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<dependencies>
+						<dependency type="visible">
+								<condition operator="is" setting="subtitles">true</condition>
+						</dependency>
+					</dependencies>
+					<control type="button" format="action">
+						<data>RunPlugin(plugin://plugin.video.umbrella/?action=tools_openSubsTest)</data>
+						<close>true</close>
+					</control>
+				</setting>
+				<setting id="openSubsRevoke" type="string" label="40510" help="">
+					<level>0</level>
+					<default></default>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<dependencies>
+						<dependency type="visible">
+							<condition operator="is" setting="subtitles">true</condition>
+						</dependency>
+					</dependencies>
+					<control type="button" format="action">
+						<data>RunPlugin(plugin://plugin.video.umbrella/?action=tools_openSubsRevoke)</data>
+						<close>true</close>
+					</control>
+				</setting>
+				<setting id="opensubstoken" type="string" label="" help="">
+					<level>0</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<dependencies>
+						<dependency type="visible">
+							<condition on="property" name="InfoBool">false</condition>
+						</dependency>
+					</dependencies>
+					<control type="edit" format="string">
+						<heading></heading>
+						<hidden>true</hidden>
+					</control>
 				</setting>
 			</group>
 			<group id="2">
@@ -5257,6 +5350,9 @@
 					<dependencies>
 						<dependency type="enable">
 							<condition operator="is" setting="subtitles">true</condition>
+						</dependency>
+						<dependency type="visible">
+							<condition on="property" name="InfoBool">false</condition>
 						</dependency>
 					</dependencies>
 					<control type="list" format="string">
@@ -5495,6 +5591,11 @@
 					<default>true</default>
 					<control type="toggle"/>
 				</setting>
+				<setting id="context.umbrella.playTrailerSelect" type="boolean" label="40511" help="">
+					<level>0</level>
+					<default>false</default>
+					<control type="toggle"/>
+				</setting>
 				<setting id="context.umbrella.traktManager" type="boolean" label="32515" help="">
 					<level>0</level>
 					<default>true</default>
@@ -5679,16 +5780,6 @@
 					</constraints>
 					<control type="button" format="action"/>
 				</setting>
-				<setting id="makeUmbrellaWork" type="action" label="40406" help="">
-					<level>0</level>
-					<constraints>
-						<allowempty>true</allowempty>
-					</constraints>
-					<control type="button" format="action">
-						<data>RunPlugin(plugin://plugin.video.umbrella/?action=tools_umbrellaProper)</data>
-						<close>true</close>
-					</control>
-				</setting>
 			</group>
 			<group id="2">
 				<setting id="dev.mode.enable" type="boolean" label="32147" help="">
@@ -5822,6 +5913,14 @@
 				<setting id="clearMetaButton" type="action" label="32612" help="">
 					<level>0</level>
 					<data>RunPlugin(plugin://plugin.video.umbrella/?action=cache_clearMeta)</data>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<control type="button" format="action"/>
+				</setting>
+				<setting id="clearFanartButton" type="action" label="40519" help="">
+					<level>0</level>
+					<data>RunPlugin(plugin://plugin.video.umbrella/?action=cache_fanart)</data>
 					<constraints>
 						<allowempty>true</allowempty>
 					</constraints>

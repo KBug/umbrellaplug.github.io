@@ -106,9 +106,11 @@ def re_auth(headers):
 				return False
 			token, refresh = response['access_token'], response['refresh_token']
 			expires = str(time() + 7776000)
+			control.homeWindow.setProperty('umbrella.updateSettings', 'false')
 			setSetting('trakt.isauthed', 'true')
 			setSetting('trakt.user.token', token)
 			setSetting('trakt.refreshtoken', refresh)
+			control.homeWindow.setProperty('umbrella.updateSettings', 'true')
 			setSetting('trakt.token.expires', expires)
 			#control.addon('script.module.myaccounts').setSetting('trakt.user.token', token)
 			#control.addon('script.module.myaccounts').setSetting('trakt.refreshtoken', refresh)
@@ -128,8 +130,14 @@ def traktAuth(fromSettings=0):
 		if deviceCode:
 			deviceCode = deviceCode.json()
 			expires_at = time.time() + 7776000
+			control.homeWindow.setProperty('umbrella.updateSettings', 'false')
 			control.setSetting('trakt.token.expires', str(expires_at))
 			control.setSetting('trakt.user.token', deviceCode["access_token"])
+			control.setSetting('trakt.scrobble', 'true')
+			control.setSetting('resume.source', '1')
+			control.setSetting('trakt.isauthed', 'true')
+			control.setSetting('trakt.indicators.alt', '1')
+			control.homeWindow.setProperty('umbrella.updateSettings', 'true')
 			control.setSetting('trakt.refreshtoken', deviceCode["refresh_token"])
 			control.sleep(1000)
 			try:
@@ -154,9 +162,14 @@ def traktRevoke(fromSettings=0):
 		try: 
 			getTrakt('oauth/revoke', post=data)
 		except: pass
+		control.homeWindow.setProperty('umbrella.updateSettings', 'false')
 		control.setSetting('trakt.user.name', '')
 		control.setSetting('trakt.token.expires', '')
 		control.setSetting('trakt.user.token', '')
+		control.setSetting('trakt.scrobble', 'false')
+		control.setSetting('resume.source', '0')
+		control.setSetting('trakt.isauthed','')
+		control.homeWindow.setProperty('umbrella.updateSettings', 'true')
 		control.setSetting('trakt.refreshtoken', '')
 		try:	
 			from resources.lib.database import traktsync
@@ -494,7 +507,7 @@ def hideItems(tvdb_ids):
 		log_utils.error()
 		return False
 
-def hideItem(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True):
+def hideItem(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True, tvshow=None):
 	success = None
 	try:
 		sections = ['progress_watched', 'calendar']
@@ -503,6 +516,7 @@ def hideItem(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True
 		if selection == -1: return
 		control.busy()
 		if episode: post = {"shows": [{"ids": {"tvdb": tvdb}}]}
+		elif tvshow: post = {"shows": [{"ids": {"tvdb": tvdb}}]}
 		else: post = {"movies": [{"ids": {"imdb": imdb}}]}
 		if selection in (0, 1):
 			section = sections[selection]
@@ -556,7 +570,7 @@ def removeWatchlistItems(type, id_list):
 				control.notification(title='Trakt Watch List Manager', message='Successfuly Removed %s Item%s' % (total_items, 's' if total_items >1 else ''))
 	except: log_utils.error()
 
-def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True, watched=None, unfinished=False):
+def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True, watched=None, unfinished=False, tvshow=None):
 	lists = []
 	try:
 		if season: season = int(season)
@@ -615,7 +629,7 @@ def manager(name, imdb=None, tvdb=None, season=None, episode=None, refresh=True,
 			elif items[select][1] == 'unrate':
 				unrate(imdb=imdb, tvdb=tvdb, season=season, episode=episode)
 			elif items[select][1] == 'hideItem':
-				hideItem(name=name, imdb=imdb, tvdb=tvdb, season=season, episode=episode)
+				hideItem(name=name, imdb=imdb, tvdb=tvdb, season=season, episode=episode, tvshow=tvshow)
 			elif items[select][1] == 'hiddenManager':
 				control.execute('RunPlugin(plugin://plugin.video.umbrella/?action=shows_traktHiddenManager)')
 			elif items[select][1] == 'unfinishedEpisodeManager':
@@ -1115,7 +1129,6 @@ def markMovieAsWatched(imdb):
 		result = getTraktAsJson('/sync/history', {"movies": [{"ids": {"imdb": imdb}}]})
 		result = result['added']['movies'] != 0
 		if getSetting('debug.level') == '1':
-			from resources.lib.modules import log_utils
 			log_utils.log('Trakt markMovieAsWatched IMDB: %s Result: %s' % (imdb, result), level=log_utils.LOGDEBUG)
 		return result
 	except: log_utils.error()
@@ -1185,7 +1198,6 @@ def markEpisodeAsWatched(imdb, tvdb, season, episode):
 		else:
 			result = result['added']['episodes'] !=0
 		if getSetting('debug.level') == '1':
-			from resources.lib.modules import log_utils
 			log_utils.log('Trakt markEpisodeAsWatched IMDB: %s TVDB: %s Season: %s Episode: %s Result: %s' % (imdb, tvdb, season, episode, result), level=log_utils.LOGDEBUG)
 		return result
 	except: log_utils.error()
@@ -1241,6 +1253,17 @@ def getEpisodeSummary(id, season, episode, full=True):
 		if full: url += '&extended=full'
 		return cache.get(getTraktAsJson, 48, url)
 	except: log_utils.error()
+
+def getEpisodeType(id, season, episode, full=True):
+	episodeType = ''
+	try:
+		url = '/shows/%s/seasons/%s/episodes/%s' % (id, season, episode)
+		if full: url += '?extended=full'
+		episodeMeta = cache.get(getTraktAsJson, 48, url)
+		episodeType = episodeMeta.get('episode_type')
+	except: 
+		log_utils.error()
+	return episodeType
 
 def getSeasons(id, full=True):
 	try:
